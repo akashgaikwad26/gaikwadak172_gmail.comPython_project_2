@@ -12,6 +12,11 @@ on:
     paths:
       - '**/*.py'
   workflow_dispatch:
+    inputs:
+      custom_username:
+        description: 'Enter custom username (default is "default-user")'
+        required: false
+        default: 'default-user'  # You can specify a default username here
 
 jobs:
   test:
@@ -47,9 +52,43 @@ jobs:
           export PYTHONPATH=$PWD
           pytest --cov=app --cov-report=xml --cov-report=html
 
-      # Step 6: Upload coverage report as an artifact
-      - name: Upload Coverage Report
+      # Step 6: Create `docs/` Folder and Replace with Coverage Report
+      - name: Create `docs/` Folder and Replace User Folder with New Report
+        run: |
+          USERNAME="${{ github.event.inputs.custom_username || 'default-user' }}"
+          DOCS_FOLDER="docs/$USERNAME"
+          mkdir -p "$DOCS_FOLDER"
+          if [ -d "htmlcov" ]; then
+            mv htmlcov "$DOCS_FOLDER/coverage"
+          else
+            echo "Coverage report not found. Exiting."
+            exit 1
+          fi
+
+      # Step 7: Upload Coverage Report as Artifact
+      - name: Upload Coverage Report as Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: python_coverage
-          path: htmlcov/
+          name: python-coverage
+          path: docs/${{ github.event.inputs.custom_username || 'default-user' }}/coverage/
+
+      # Step 8: Commit and Push Updated Report to GitHub Pages
+      - name: Commit and Push Updated Report to GitHub Pages
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          
+          if [ -d "docs/${{ github.event.inputs.custom_username || 'default-user' }}/coverage" ]; then
+            git add docs/${{ github.event.inputs.custom_username || 'default-user' }}/coverage
+            git commit -m "Update coverage report for ${{ github.event.inputs.custom_username || 'default-user' }}"
+            git push origin main --force
+          else
+            echo "No report to commit. Skipping."
+          fi
+
+      # Step 9: Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          personal_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
