@@ -1,4 +1,4 @@
-name: Code Coverage(Python)
+name: Code Coverage (Python)
 
 on:
   push:
@@ -6,12 +6,14 @@ on:
       - main
     paths:
       - '**/*.py'
+
   pull_request:
     branches:
       - main
     paths:
       - '**/*.py'
-  workflow_dispatch:
+
+  workflow_dispatch:  # Allows manual triggering of the workflow
     inputs:
       custom_username:
         description: 'Enter custom username (default is "default-user")'
@@ -22,9 +24,8 @@ jobs:
   test:
     name: Run Tests and Upload Coverage
     runs-on: ubuntu-latest
-
     steps:
-      # Step 1: Check out the repository
+      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -46,13 +47,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Step 5: Run tests and generate coverage report
+      # Step 5: Run tests with coverage
       - name: Run tests with coverage
         run: |
           export PYTHONPATH=$PWD
           pytest --cov=app --cov-report=xml --cov-report=html
 
-      # Step 6: Create `docs/` Folder and Replace with Coverage Report
+      # Step 6: Create `docs/` Folder and Replace User Folder with New Report
       - name: Create `docs/` Folder and Replace User Folder with New Report
         run: |
           USERNAME="${{ github.event.inputs.custom_username || 'default-user' }}"
@@ -65,30 +66,28 @@ jobs:
             exit 1
           fi
 
-      # Step 7: Upload Coverage Report as Artifact
-      - name: Upload Coverage Report as Artifact
+      # Step 7: Upload Coverage Reports as Artifact
+      - name: Upload Coverage Reports as Artifact
         uses: actions/upload-artifact@v3
         with:
           name: python-coverage
           path: docs/${{ github.event.inputs.custom_username || 'default-user' }}/coverage/
 
-      # Step 8: Commit and Push Updated Report to GitHub Pages
-      - name: Commit and Push Updated Report to GitHub Pages
+      # Step 8: Commit and Push Coverage Reports to GitHub Pages
+      - name: Commit and Push Coverage Reports to GitHub Pages
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          
-          if [ -d "docs/${{ github.event.inputs.custom_username || 'default-user' }}/coverage" ]; then
-            git add docs/${{ github.event.inputs.custom_username || 'default-user' }}/coverage
-            git commit -m "Update coverage report for ${{ github.event.inputs.custom_username || 'default-user' }}"
-            git push origin main --force
-          else
-            echo "No report to commit. Skipping."
-          fi
 
-      # Step 9: Deploy to GitHub Pages
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          personal_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
+          # Add and commit the entire folder
+          git add docs/${{ github.event.inputs.custom_username || 'default-user' }}/
+          git commit -m "Update coverage reports for ${{ github.event.inputs.custom_username || 'default-user' }}"
+
+          # Push the changes to GitHub Pages
+          git push https://x-access-token:${GH_PAT}@github.com/${{ github.repository }} main --force
+
+      # Step 9: Clean up coverage directory
+      - name: Clean up coverage directory
+        run: rm -rf htmlcov/
