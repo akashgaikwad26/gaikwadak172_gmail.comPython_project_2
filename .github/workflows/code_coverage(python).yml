@@ -80,8 +80,8 @@ jobs:
          git config user.name "GitHub Actions"
          git config user.email "actions@github.com"
         
-         if [ -f "docs/${{ github.event.inputs.custom_username || 'default-user' }}/coverage/" ]; then
-           git add docs/${{ github.event.inputs.custom_username || 'default-user' }}/eslint-report.html
+         if [ -f "docs/${{ github.event.inputs.custom_username || 'default-user' }}/coverage" ]; then
+           git add docs/${{ github.event.inputs.custom_username || 'default-user' }}/coverage
            git commit -m "Update Python coverage report for ${{ github.event.inputs.custom_username || 'default-user' }}"
            git push origin main --force
          else
