@@ -1,0 +1,13 @@
+************* Module tests.test_calculator
+tests/test_calculator.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+tests/test_calculator.py:3:0: E0401: Unable to import 'pytest' (import-error)
+tests/test_calculator.py:7:0: C0116: Missing function or method docstring (missing-function-docstring)
+tests/test_calculator.py:17:0: C0116: Missing function or method docstring (missing-function-docstring)
+tests/test_calculator.py:22:0: C0116: Missing function or method docstring (missing-function-docstring)
+tests/test_calculator.py:4:0: W0611: Unused subtract imported from app.calculator (unused-import)
+************* Module app.calculator
+app/calculator.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+
+-----------------------------------
+Your code has been rated at 5.60/10
+
