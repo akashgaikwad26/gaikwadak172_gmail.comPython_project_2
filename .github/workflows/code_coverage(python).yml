@@ -80,14 +80,10 @@ jobs:
          git config user.name "GitHub Actions"
          git config user.email "actions@github.com"
         
-         if [ -f "docs/${{ github.event.inputs.custom_username || 'default-user' }}/coverage" ]; then
-           git add docs/${{ github.event.inputs.custom_username || 'default-user' }}/coverage
-           git commit -m "Update Python coverage report for ${{ github.event.inputs.custom_username || 'default-user' }}"
-           git push origin main --force
-         else
-           echo "No report to commit. Skipping."
-         fi
-
+         git add docs/${{ github.event.inputs.custom_username || 'default-user' }}/
+         git commit -m "Update Python coverage report for ${{ github.event.inputs.custom_username || 'default-user' }}"
+         git push https://x-access-token:${GH_PAT}@github.com/${{ github.repository }} main --force       
+     
       # Step 9: Clean up coverage directory
       - name: Clean up coverage directory
         run: rm -rf htmlcov/
