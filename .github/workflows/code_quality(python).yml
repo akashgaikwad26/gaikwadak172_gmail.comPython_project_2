@@ -54,10 +54,10 @@ jobs:
           conventions=$(grep -oP 'C\d{4}' pylint-report.txt | wc -l || echo 0)  # Count 'C' errors (conventions)
 
           # Calculate LLOC as the sum of errors, warnings, and conventions
-          lloc=$((errors + warnings + conventions))
+          lloc=$((errors + warnings ))
 
           # Calculate the quality score using the formula
-          quality_score=$(echo "scale=2; 10 - ((5 * $errors + $warnings + $conventions) / $lloc) * 10" | bc)
+          quality_score=$(echo "scale=2; ((5 * $errors + $warnings ) / $lloc) * 10 -10" | bc)
 
           # Save the quality score to a file
           echo "Code Quality Score: $quality_score%" > quality_score.txt
