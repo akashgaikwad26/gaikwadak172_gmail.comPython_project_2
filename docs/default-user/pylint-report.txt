@@ -1,15 +1,18 @@
-************* Module app.calculator
-app/calculator.py:4:4: E0001: Parsing failed: 'unexpected indent (app.calculator, line 4)' (syntax-error)
 ************* Module tests.test_calculator
 tests/test_calculator.py:1:0: C0114: Missing module docstring (missing-module-docstring)
-tests/test_calculator.py:4:0: E0001: Cannot import 'app.calculator' due to 'unexpected indent (app.calculator, line 4)' (syntax-error)
-tests/test_calculator.py:4:0: E0611: No name 'calculator' in module 'app' (no-name-in-module)
 tests/test_calculator.py:7:0: C0116: Missing function or method docstring (missing-function-docstring)
 tests/test_calculator.py:17:0: C0116: Missing function or method docstring (missing-function-docstring)
 tests/test_calculator.py:22:0: C0116: Missing function or method docstring (missing-function-docstring)
 tests/test_calculator.py:25:9: E0602: Undefined variable 'pytest' (undefined-variable)
 tests/test_calculator.py:4:0: W0611: Unused subtract imported from app.calculator (unused-import)
+************* Module app.calculator
+app/calculator.py:4:0: C0303: Trailing whitespace (trailing-whitespace)
+app/calculator.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+app/calculator.py:2:0: C0116: Missing function or method docstring (missing-function-docstring)
+app/calculator.py:7:0: C0116: Missing function or method docstring (missing-function-docstring)
+app/calculator.py:10:0: C0116: Missing function or method docstring (missing-function-docstring)
+app/calculator.py:13:0: C0116: Missing function or method docstring (missing-function-docstring)
 
 -----------------------------------
-Your code has been rated at 0.00/10
+Your code has been rated at 3.33/10
 
