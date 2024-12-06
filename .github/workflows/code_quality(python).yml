@@ -60,7 +60,9 @@ jobs:
           quality_score=$(echo "scale=2; 10- ((5 * $errors + $warnings +$conventions) / $lloc) * 10" | bc)
 
           # Save the quality score to a file
-          echo "Code Quality Score: $quality_score%" > quality_score.txt
+          echo "Code Quality Score: $quality_score" > quality_score.txt
+          echo "quality_score=$quality_score" >> $GITHUB_ENV
+
 
       - name: Move Reports to docs/
         run: |
@@ -112,9 +114,9 @@ jobs:
               \"userid\": \"$USER_ID\",
               \"clientpublic\": \"$CLIENT_PUBLIC\",
               \"clientsecret\": \"$CLIENT_SECRET\",
-              \"projectid\": \"$CLIENT_SECRET\",
+              \"projectid\": \"$projectid\",
               \"recordtime\": \"$LAST_REQUEST_TIME\",
-              \"quality\": \"$quality_score \",
-              \"coverage\": \"$quality_score \"
+            \"quality\": \"${{ env.quality_score }}\",
+              \"coverage\": \"${{ env.quality_score }}\"
             }"
  
