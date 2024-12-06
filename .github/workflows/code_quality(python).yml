@@ -1,3 +1,5 @@
+name: Code Quality (Python)
+
 on:
   push:
     branches:
@@ -112,7 +114,7 @@ jobs:
               \"clientsecret\": \"$CLIENT_SECRET\",
               \"projectid\": \"$CLIENT_SECRET\",
               \"recordtime\": \"$LAST_REQUEST_TIME\",
-              \"quality\": \"$quality_score\",
-              \"coverage\": \"$quality_score\"
+              \"quality\": \"$quality_score \",
+              \"coverage\": \"$quality_score \"
             }"
  
