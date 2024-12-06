@@ -44,28 +44,20 @@ jobs:
       - name: Calculate Quality Score
         run: |
           # Initialize variables
-          convention_errors=0
-          total_statements=0
+          errors=0
+          warnings=0
+          conventions=0  # To count the conventions violations (C errors)
 
-          # Parse the Pylint output
-          while read -r line; do
-            # Extract convention errors (C) from the summary
-            if [[ $line == *"convention"* ]]; then
-              convention_errors=$(echo $line | awk '{print $2}')
-            fi
+          # Parse the Pylint report to calculate Errors (E), Warnings (W), and Conventions (C)
+          errors=$(grep -oP 'E\d{4}' pylint-report.txt | wc -l || echo 0)
+          warnings=$(grep -oP 'W\d{4}' pylint-report.txt | wc -l || echo 0)
+          conventions=$(grep -oP 'C\d{4}' pylint-report.txt | wc -l || echo 0)  # Count 'C' errors (conventions)
 
-            # Extract total number of statements
-            if [[ $line == *"Your code has been rated at"* ]]; then
-              total_statements=$(pylint . --disable=all --reports=y | grep -oP '(\d+) statement' | awk '{print $1}')
-            fi
-          done < pylint-report.txt
+          # Calculate LLOC as the sum of errors, warnings, and conventions
+          lloc=$((errors + warnings + conventions))
 
-          # Ensure no division by zero
-          if [[ $total_statements -eq 0 ]]; then
-            quality_score=0
-          else
-            quality_score=$(echo "scale=2; 10.0 - ((5.0 * $convention_errors / $total_statements) * 10)" | bc)
-          fi
+          # Calculate the quality score using the formula
+          quality_score=$(echo "scale=2; 10 - ((5 * $errors + $warnings + $conventions) / $lloc) * 10" | bc)
 
           # Save the quality score to a file
           echo "Code Quality Score: $quality_score%" > quality_score.txt
