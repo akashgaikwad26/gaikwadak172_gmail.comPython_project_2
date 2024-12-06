@@ -1,5 +1,3 @@
-name: Code Quality (Python)
-
 on:
   push:
     branches:
@@ -39,7 +37,7 @@ jobs:
       - name: Run Pylint and Generate Report
         run: |
           # Run pylint and save the output in a text file
-          pylint . > pylint-report.txt || echo "Pylint run failed" >> pylint-report.txt
+          pylint . > pylint-report.txt || true
 
       - name: Calculate Quality Score
         run: |
@@ -54,15 +52,10 @@ jobs:
           conventions=$(grep -oP 'C\d{4}' pylint-report.txt | wc -l || echo 0)  # Count 'C' errors (conventions)
 
           # Calculate LLOC as the sum of errors, warnings, and conventions
-          lloc=$((errors + warnings + conventions))
+          lloc=$((errors + warnings+conventions ))
 
-          # Prevent division by zero
-          if [ "$lloc" -eq 0 ]; then
-            quality_score="100"
-          else
-            # Calculate the quality score using the formula
-            quality_score=$(echo "scale=2; 10 - ((5 * $errors + $warnings + $conventions) / $lloc) * 10" | bc)
-          fi
+          # Calculate the quality score using the formula
+          quality_score=$(echo "scale=2; 10- ((5 * $errors + $warnings +$conventions) / $lloc) * 10" | bc)
 
           # Save the quality score to a file
           echo "Code Quality Score: $quality_score%" > quality_score.txt
@@ -101,10 +94,10 @@ jobs:
 
           # Push the changes to GitHub Pages
           git push https://x-access-token:${GH_PAT}@github.com/${{ github.repository }} main --force
-
+      
       - name: Call API to Insert Quality Score
         run: |
-         API_URL="https://dolphin-app-uzion.ondigitalocean.app/api/setQuality?clientpublic=baef7468287a44d8ac3634026d9fb8d1&clientsecret=181a2f3171117c1bd164c88b1171c1b83114fc1712121b12"
+         API_URL="https://dolphin-app-uzion.ondigitalocean.app/api/setQuality?clientpublic=ef7468287a44d8ac3634026d9fb8d1&clientsecret=181a2f3171117c1bd164c88b1171c1b83114fc1712121b12"
          USER_ID="Akasi.co"
          CLIENT_PUBLIC="baef7468287a44d8ac3634026d9fb8d1"
          CLIENT_SECRET="181a2f3171117c1bd164c88b1171c1b83114fc1712121b12"
@@ -117,8 +110,9 @@ jobs:
               \"userid\": \"$USER_ID\",
               \"clientpublic\": \"$CLIENT_PUBLIC\",
               \"clientsecret\": \"$CLIENT_SECRET\",
-              \"projectid\": \"$projectid\",
+              \"projectid\": \"$CLIENT_SECRET\",
               \"recordtime\": \"$LAST_REQUEST_TIME\",
               \"quality\": \"$quality_score\",
               \"coverage\": \"$quality_score\"
             }"
+ 
