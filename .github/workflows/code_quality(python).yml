@@ -65,7 +65,7 @@ jobs:
           # Use a custom username from workflow inputs or default to "default-user"
           USERNAME="${{ github.event.inputs.custom_username || 'default-user' }}"
           # Define the path for the user's folder in the docs directory
-          DOCS_FOLDER="docs/$USERNAME"
+          DOCS_FOLDER="docs/${USERNAME}/${PROJECT_ID}/code_quality"
           # Create the docs folder if it doesn't exist
           mkdir -p "$DOCS_FOLDER"
           # Move the reports to the user's folder in the docs directory
