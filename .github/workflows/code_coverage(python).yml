@@ -110,7 +110,7 @@ jobs:
            -H "Content-Type: application/json" \
            -d "{
               \"userid\": \"$USER_ID\",
-              \"projectid\": \"$projectid\",
+              \"projectid\": \"$PROJECT_ID\",
               \"recordtime\": \"$LAST_REQUEST_TIME\",
               \"coverage\": \"${{ env.COVERAGE }}\"
             }"
