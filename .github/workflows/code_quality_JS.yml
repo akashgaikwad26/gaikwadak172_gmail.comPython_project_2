@@ -1,0 +1,146 @@
+name: Code Quality (JavaScript)
+'on':
+  push:
+    paths:
+      - '**/*.js'
+  pull_request:
+    paths:
+      - '**/*.js'
+  workflow_dispatch:
+    inputs:
+      custom_username:
+        description: Enter custom username (default is "default-user")
+        required: false
+        default: default-user
+      project_id:
+        description: Enter project ID (default is "default-project")
+        required: false
+        default: default-project
+jobs:
+  lint:
+    name: Run ESLint and Generate Quality Report
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install Dependencies
+        run: |
+          npm install eslint eslint-formatter-html --save-dev
+          if ! grep -q '"lint":' package.json; then
+            jq '.scripts += {"lint": "eslint \"**/*.js\""}' package.json > temp.json && mv temp.json package.json
+          fi
+      - name: Create ESLint Config File
+        run: |
+          echo 'module.exports = [
+            {
+              files: ["**/*.js"], 
+              ignores: ["coverage/"],
+              rules: {
+                "no-unused-vars": "warn",
+                "no-console": "off"
+              }
+            }
+          ];' > eslint.config.js
+      - name: Run ESLint and Generate Report
+        run: >
+          npm run lint -- --config eslint.config.js --format json --output-file
+          eslint-report.json || {
+            echo "ESLint failed. Printing debug info...";
+            exit 1;
+          }
+      - name: Calculate Quality Score
+        id: calculate_score
+        run: >
+          # Extract convention errors and statement counts from the ESLint JSON
+          report
+
+          ERROR_COUNT=$(jq '[.[] | .messages | length] | add'
+          eslint-report.json)
+
+          STATEMENT_COUNT=$(grep -o ";" **/*.js | wc -l)
+
+
+          # Avoid division by zero
+
+          if [ "$STATEMENT_COUNT" -eq 0 ]; then
+            echo "No statements found in the codebase. Setting quality score to 0."
+            QUALITY_SCORE=0
+          else
+            QUALITY_SCORE=$(awk "BEGIN {printf \"%.2f\", 10.0 - ((5 * $ERROR_COUNT / $STATEMENT_COUNT) * 10)}")
+          fi
+
+
+          echo "Quality Score: $QUALITY_SCORE"
+
+          echo "quality_score=$QUALITY_SCORE" >> $GITHUB_ENV
+      - name: Append Quality Score to HTML Report
+        run: |
+          QUALITY_SCORE=${{ env.quality_score }}
+          echo "<h2>Quality Score: $QUALITY_SCORE</h2>" >> eslint-report.html
+      - name: Create `docs/` Folder and Replace User Folder with New Report
+        run: >
+          USERNAME="${{ github.event.inputs.custom_username || 'default-user'
+          }}"
+
+          DOCS_FOLDER="docs/${USERNAME}/${PROJECT_ID}/code_quality"
+
+          mkdir -p "$DOCS_FOLDER"
+
+
+          if [ -f "eslint-report.html" ]; then
+            mv eslint-report.html "$DOCS_FOLDER/"
+          else
+            echo "ESLint report not found. Exiting."
+            exit 1
+          fi
+      - name: Upload ESLint Report as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: eslint-report
+          path: >-
+            docs/${{ github.event.inputs.custom_username || 'default-user'
+            }}/eslint-report.html
+      - name: Commit and Push Updated Report to GitHub Pages
+        run: >
+          git config user.name "GitHub Actions"
+
+          git config user.email "actions@github.com"
+
+
+          if [ -f "docs/${{ github.event.inputs.custom_username ||
+          'default-user' }}/eslint-report.html" ]; then
+            git add docs/${{ github.event.inputs.custom_username || 'default-user' }}/eslint-report.html
+            git commit -m "Update ESLint report with Quality Score for ${{ github.event.inputs.custom_username || 'default-user' }}"
+            git push origin main --force
+          else
+            echo "No report to commit. Skipping."
+          fi
+      - name: Call API to Insert Quality Score
+        run: >
+          API_URL="https://dolphin-app-uzion.ondigitalocean.app/api/setQuality?clientpublic=baef7468287a44d8ac3634026d9fb8d1&clientsecret=181a2f3171117c1bd164c88b1171c1b83114fc1712121b12"
+
+          USER_ID="${{ github.event.inputs.custom_username || 'default-user' }}"
+
+          PROJECT_ID="${{ github.event.inputs.project_id || 'default-project'
+          }}"
+
+          LAST_REQUEST_TIME="$(date +%s)000"
+
+
+          curl -X POST "$API_URL" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"userid\": \"$USER_ID\",
+              \"clientpublic\": \"$CLIENT_PUBLIC\",
+              \"clientsecret\": \"$CLIENT_SECRET\",
+              \"projectid\": \"$PROJECT_ID\",
+              \"recordtime\": \"$LAST_REQUEST_TIME\",
+              \"quality\": \"${{ env.quality_score }}\",
+               \"coverage\": \"${{ env.quality_score }}\"
+            }"
